@@ -20,20 +20,21 @@ class FbpostsController < ApplicationController
   def create
     @fbpost = Fbpost.new(fbpost_params)
 
-    @fbpost.save
+     @fbpost.save
 
-    if @fbpost.likes_data
-      likes = string_to_json(@fbpost.likes_data)
-      likes.each do |like|
-        @fbpost.fblikes.create(fblikes_params(like, @fbpost.fb_user_token))
-      end
-    end
+    # if @fbpost.likes_data
+    #   likes = string_to_json(@fbpost.likes_data)
+    #   likes.each do |like|
+    #     @fbpost.fblikes.create(fblikes_params(like, @fbpost.fb_user_token))
+    #   end
+    # end
 
-    if @fbpost.save
-      render json: @fbpost, status: :created, location: @fbpost
-    else
-      render json: @fbpost.errors, status: :unprocessable_entity
-    end
+    # calculate_gender_percentage_likes(@fbpost.fblikes)
+    
+      # render json: @fbpost, status: :created, location: @fbpost
+    # else
+      # render json: @fbpost.errors, status: :unprocessable_entity
+    # end
   end
 
   # PATCH/PUT /fbposts/1
@@ -55,6 +56,7 @@ class FbpostsController < ApplicationController
 
     head :no_content
   end
+
 
   private
     def string_to_json(this_string)
@@ -83,5 +85,20 @@ class FbpostsController < ApplicationController
       auth_user = Koala::Facebook::API.new(fb_user_token)
       name = auth_user.get_object(friend + '?fields=first_name')
       gender = Guess.gender(name["first_name"])[:gender]
+    end
+
+    def calculate_gender_percentage_likes(likes)
+      genders = Hash.new 0
+
+      likes.each do |gender| 
+        unless gender.gender == "unknown"
+          genders[gender.gender] += 1
+        end
+      end
+
+        total = genders.values.inject(:+)
+        female_percentage = (100).to_f / (total).to_f * genders["female"].to_f
+        male_percentage = 100 - female_percentage
+      genders_percentage = {male: male_percentage, female: female_percentage}
     end
 end

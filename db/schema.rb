@@ -11,14 +11,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150810024534) do
+ActiveRecord::Schema.define(version: 20150810063847) do
 
   create_table "fblikes", force: :cascade do |t|
-    t.string   "user_name"
-    t.string   "user_facebook_id"
-    t.string   "gender"
     t.datetime "created_at",       null: false
     t.datetime "updated_at",       null: false
+    t.string   "user_facebook_id"
+    t.string   "user_name"
+    t.string   "gender"
     t.integer  "fbpost_id"
   end
 
