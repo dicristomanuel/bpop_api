@@ -9,6 +9,7 @@ gem 'rails-api'
 
 gem 'spring', :group => :development
 
+gem "typhoeus"
 
 gem 'sqlite3'
 

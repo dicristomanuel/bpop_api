@@ -4,16 +4,45 @@ class FbpostsController < ApplicationController
   # GET /fbposts
   # GET /fbposts.json
   def index
-    @fbposts = Fbpost.all
+
+    # request = Typhoeus::Request.new(
+    #   'https://api.genderize.io/?name=manuel',
+    #   headers: { Accept: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.130 Safari/537.36" }
+    # ).run
+
+    request = Typhoeus::Request.new("https://api.genderize.io/?name=manuel", followlocation: true)
+
+request.on_complete do |response|
+  if response.success?
+    render json: response
+  elsif response.timed_out?
+    render json: {'sorry': 'timeout'}
+  elsif response.code == 0
+    render json: {'sorry': "something's wrong", "return_message": response.return_message}
+  else
+      render json: {'sorry': 'not successful'}
+  end
+end
+
+request.run
+
+
+
+    # @fbposts = Fbpost.all
+    # render json: @fbposts
+  end
+
+  # since=one%20month%20ago
+  def show
+    if params[:since]
+      sinceDate = Chronic.parse(params[:since])
+      @fbposts = Fbpost.where("date > ?", sinceDate)
+    else
+      @fbposts = Fbpost.where(bpopToken: params[:id])
+    end
     render json: @fbposts
   end
 
-  # GET /fbposts/1
-  # GET /fbposts/1.json
-  def show
-    @fbposts = Fbpost.where(bpopToken: params[:id])
-    render json: @fbposts
-  end
 
 
   # POST /fbposts
@@ -129,9 +158,18 @@ class FbpostsController < ApplicationController
       #exchange fb token for access
       auth_user = Koala::Facebook::API.new(fb_user_token)
       #get the name of the single user
-      name = auth_user.get_object(friend + '?fields=first_name')
+      fbFriend = auth_user.get_object(friend + '?fields=first_name')
       #find the gender of the users their first name trough gem-guess
-      gender = Guess.gender(name["first_name"])[:gender]
+      # gender = Guess.gender(name["first_name"])[:gender] ** GEM GUESS FOR GENDERS
+      # 'https://api.genderize.io/?name=' + name["first_name"] # genderize.io for genders
+
+      response = Typhoeus::Request.new(
+        'https://api.genderize.io/?name=' + fbFriend["first_name"],
+        headers: { Accept: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.130 Safari/537.36" }
+      ).run
+
+      response
+
     end
 
 
