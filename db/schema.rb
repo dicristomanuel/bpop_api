@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150815232052) do
+ActiveRecord::Schema.define(version: 20150816010529) do
 
   create_table "fbcomments", force: :cascade do |t|
     t.string   "user_name"
@@ -50,7 +50,7 @@ ActiveRecord::Schema.define(version: 20150815232052) do
     t.string   "likesGenderPercentage"
     t.string   "commentsGenderPercentage"
     t.text     "comments_data"
-    t.text     "bpop_token"
+    t.string   "bpopToken"
   end
 
 end

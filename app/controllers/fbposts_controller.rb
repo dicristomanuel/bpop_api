@@ -22,30 +22,27 @@ class FbpostsController < ApplicationController
     @fbpost = Fbpost.new(fbpost_params) #private section#
     if @fbpost.save
     #if fbpost has comments get the string and parse it to JSON, for each like create new fblike
-    if @fbpost.likes_data
+    if @fbpost.likes_data != '0'
       likes = string_to_json(@fbpost.likes_data) #private section#
       likes.each do |like|
         @fbpost.fblikes.create(fblikes_params(like, @fbpost.fb_user_token)) #private section#
       end
+      likesGenderPercentage = calculate_gender_percentage_likes(@fbpost.fblikes)
+      @fbpost.update(
+        likesGenderPercentage: likesGenderPercentage
+       ) #private section#
     end
+
     if @fbpost.comments_data != '0'
       comments = string_to_json(@fbpost.comments_data) #private section#
       comments.each do |comment|
         @fbpost.fbcomments.create(fbcomments_params(comment, @fbpost.fb_user_token)) #private section#
       end
-    else
-
+      commentsGenderPercentage = calculate_gender_percentage_comments(@fbpost.fbcomments)
+      @fbpost.update(
+        commentsGenderPercentage: commentsGenderPercentage
+       ) #private section#
     end
-
-
-    #once created all the likes and commentsfor the current fbpost calculate likes/commentsGenderPercentage and
-    #update properties inside fbpost parent
-    likesGenderPercentage = calculate_gender_percentage_likes(@fbpost.fblikes)
-    commentsGenderPercentage = calculate_gender_percentage_comments(@fbpost.fbcomments)
-    @fbpost.update(
-      likesGenderPercentage: likesGenderPercentage,
-      commentsGenderPercentage: commentsGenderPercentage
-     ) #private section#
 
       render json: @fbpost, status: :created, location: @fbpost
     else
@@ -76,11 +73,8 @@ class FbpostsController < ApplicationController
 
   def get_overall_gender_percentage
     #get user's token to identify the user
-    @result = Fbpost.where(bpop_token:params['bpop_token'])
-binding.pry
+    @result = Fbpost.where(bpopToken:params['bpopToken'])
     render json: @result
-
-
   end
 
 
@@ -98,7 +92,7 @@ binding.pry
 
 
     def fbpost_params
-      params.require(:fbpost).permit(:story, :message, :likes, :likes_data, :comments_data, :integer, :url, :date, :bpop_token, :fb_user_token)
+      params.require(:fbpost).permit(:story, :message, :likes, :likes_data, :comments_data, :integer, :url, :date, :bpopToken, :fb_user_token)
     end
 
 
@@ -149,6 +143,15 @@ binding.pry
         female_percentage = (100).to_f / (total).to_f * genders["female"].to_f
         #calculate male percentage
         male_percentage = 100 - female_percentage
+
+        if female_percentage == NaN
+          female_percentage = 0
+        end
+
+        if male_percentage == NaN
+          male_percentage = 0
+        end
+
       #store and return data into a hash
       genders_percentage = {male: male_percentage, female: female_percentage}
     end
@@ -169,6 +172,15 @@ binding.pry
         female_percentage = (100).to_f / (total).to_f * genders["female"].to_f
         #calculate male percentage
         male_percentage = 100 - female_percentage
+
+        if female_percentage == NaN
+          female_percentage = 0
+        end
+
+        if male_percentage == NaN
+          male_percentage = 0
+        end
+
       #store and return data into a hash
       genders_percentage = {male: male_percentage, female: female_percentage}
     end

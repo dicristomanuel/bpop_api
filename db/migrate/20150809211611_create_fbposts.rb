@@ -7,7 +7,6 @@ class CreateFbposts < ActiveRecord::Migration
       t.string :integer
       t.string :url
       t.string :date
-      t.text :identity_token
 
       t.timestamps null: false
     end
