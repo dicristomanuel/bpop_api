@@ -11,7 +11,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150810063847) do
+ActiveRecord::Schema.define(version: 20150815232052) do
+
+  create_table "fbcomments", force: :cascade do |t|
+    t.string   "user_name"
+    t.string   "fbuser_id"
+    t.string   "message"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer  "fbpost_id"
+    t.string   "gender"
+  end
+
+  add_index "fbcomments", ["fbpost_id"], name: "index_fbcomments_on_fbpost_id"
 
   create_table "fblikes", force: :cascade do |t|
     t.datetime "created_at",       null: false
@@ -31,11 +43,14 @@ ActiveRecord::Schema.define(version: 20150810063847) do
     t.string   "integer"
     t.string   "url"
     t.string   "date"
-    t.datetime "created_at",    null: false
-    t.datetime "updated_at",    null: false
-    t.text     "user_token"
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
     t.text     "likes_data"
     t.text     "fb_user_token"
+    t.string   "likesGenderPercentage"
+    t.string   "commentsGenderPercentage"
+    t.text     "comments_data"
+    t.text     "bpop_token"
   end
 
 end
