@@ -5,38 +5,16 @@ class FbpostsController < ApplicationController
   # GET /fbposts.json
   def index
 
-    # request = Typhoeus::Request.new(
-    #   'https://api.genderize.io/?name=manuel',
-    #   headers: { Accept: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.130 Safari/537.36" }
-    # ).run
+    @fbposts = Fbpost.all
+    render json: @fbposts
 
-    request = Typhoeus::Request.new("https://api.genderize.io/?name=manuel", followlocation: true)
-
-request.on_complete do |response|
-  if response.success?
-    render json: response
-  elsif response.timed_out?
-    render json: {'sorry': 'timeout'}
-  elsif response.code == 0
-    render json: {'sorry': "something's wrong", "return_message": response.return_message}
-  else
-      render json: {'sorry': 'not successful'}
-  end
-end
-
-request.run
-
-
-
-    # @fbposts = Fbpost.all
-    # render json: @fbposts
   end
 
   # since=one%20month%20ago
   def show
     if params[:since]
       sinceDate = Chronic.parse(params[:since])
-      @fbposts = Fbpost.where("date > ?", sinceDate)
+      @fbposts = Fbpost.where("date > ? and bpopToken == ?", sinceDate, params[:id])
     else
       @fbposts = Fbpost.where(bpopToken: params[:id])
     end
@@ -55,7 +33,7 @@ request.run
     unless @fbpost.likes_data == '0'
       likes = string_to_json(@fbpost.likes_data) #private section#
       likes.each do |like|
-        @fbpost.fblikes.create(fblikes_params(like, @fbpost.fb_user_token)) #private section#
+        @fbpost.fblikes.create(fblikes_params(like, @fbpost.fb_user_token, @fbpost.bpopToken, @fbpost.date)) #private section#
       end
       likesGenderPercentage = calculate_gender_percentage_likes(@fbpost.fblikes)
       @fbpost.update(
@@ -67,7 +45,7 @@ request.run
     unless @fbpost.comments_data == '0'
       comments = string_to_json(@fbpost.comments_data) #private section#
       comments.each do |comment|
-        @fbpost.fbcomments.create(fbcomments_params(comment, @fbpost.fb_user_token)) #private section#
+        @fbpost.fbcomments.create(fbcomments_params(comment, @fbpost.fb_user_token, @fbpost.bpopToken, @fbpost.date)) #private section#
       end
       commentsGenderPercentage = calculate_gender_percentage_comments(@fbpost.fbcomments)
       @fbpost.update(
@@ -128,28 +106,44 @@ request.run
 
 
     def fbpost_params
-      params.require(:fbpost).permit(:story, :message, :likes, :comments, :likes_data, :comments_data, :integer, :url, :date, :bpopToken, :fb_user_token)
+      params.require(:fbpost).permit(
+          :story,
+          :message,
+          :likes,
+          :comments,
+          :likes_data,
+          :comments_data,
+          :integer,
+          :url,
+          :date,
+          :bpopToken,
+          :fb_user_token
+        )
     end
 
 
-    def fblikes_params(like, fb_user_token)
+    def fblikes_params(like, fb_user_token, bpopToken, date)
       #find the gender of each of the users
       gender = get_gender(fb_user_token, like['id'])
       return {
         user_facebook_id: like['id'],
         user_name: like['name'],
-        gender: gender
+        gender: gender,
+        bpopToken: bpopToken,
+        date: date
       }
     end
 
-    def fbcomments_params(comment, fb_user_token)
+    def fbcomments_params(comment, fb_user_token, bpopToken, date)
       #find the gender of each of the users
       gender = get_gender(fb_user_token, comment['from']['id'])
       return {
         fbuser_id: comment['from']['id'],
         user_name: comment['from']['name'],
         message: comment['message'],
-        gender: gender
+        gender: gender,
+        bpopToken: bpopToken,
+        date: date
       }
     end
 
@@ -159,16 +153,19 @@ request.run
       auth_user = Koala::Facebook::API.new(fb_user_token)
       #get the name of the single user
       fbFriend = auth_user.get_object(friend + '?fields=first_name')
-      #find the gender of the users their first name trough gem-guess
-      # gender = Guess.gender(name["first_name"])[:gender] ** GEM GUESS FOR GENDERS
-      # 'https://api.genderize.io/?name=' + name["first_name"] # genderize.io for genders
+      # --- gem guess for genders --- #
+      gender = Guess.gender(fbFriend["first_name"])[:gender]
+      # --- --- --- --- --- --- --- --- #
 
-      response = Typhoeus::Request.new(
-        'https://api.genderize.io/?name=' + fbFriend["first_name"],
-        headers: { Accept: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.130 Safari/537.36" }
-      ).run
 
-      response
+      # --- genderize.io for genders --- # more accurate but slower and not free
+      # request = Typhoeus::Request.new(
+      #   "https://api.genderize.io/?name=" + fbFriend["first_name"],
+      #   :headers => {"User-Agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.130 Safari/537.36"}
+      # ).run
+      #
+      # JSON.parse(request.response_body)['gender']
+      # --- --- --- --- --- --- --- --- #
 
     end
 
@@ -280,7 +277,7 @@ request.run
         #calculate male percentage
           male_percentage = 100 - female_percentage || 0
         #store and return data into a hash
-        {male: male_percentage, female: female_percentage}
+        {total: {male: male_percentage, female: female_percentage}, likes: likes_percentage, comments: comments_percentage}
     end
 
 end

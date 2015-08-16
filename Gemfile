@@ -5,6 +5,8 @@ gem 'rails', '4.2.3'
 
 gem 'pry-rails'
 
+gem 'pry-byebug'
+
 gem 'rails-api'
 
 gem 'spring', :group => :development
@@ -20,6 +22,10 @@ gem 'chronic'
 gem 'guess'
 
 gem 'thin'
+
+gem 'better_errors'
+
+gem "binding_of_caller"
 
 
 # To use ActiveModel has_secure_password
