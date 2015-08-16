@@ -1,5 +1,5 @@
 class FbpostsController < ApplicationController
-  before_action :set_fbpost, only: [:show, :update, :destroy]
+  before_action :set_fbpost, only: [:update, :destroy]
 
   # GET /fbposts
   # GET /fbposts.json
@@ -11,7 +11,8 @@ class FbpostsController < ApplicationController
   # GET /fbposts/1
   # GET /fbposts/1.json
   def show
-    render json: @fbpost
+    @fbposts = Fbpost.where(bpopToken: params[:id])
+    render json: @fbposts
   end
 
 
@@ -21,8 +22,8 @@ class FbpostsController < ApplicationController
     #creating new fbpost
     @fbpost = Fbpost.new(fbpost_params) #private section#
     if @fbpost.save
-    #if fbpost has comments get the string and parse it to JSON, for each like create new fblike
-    if @fbpost.likes_data != '0'
+    #if fbpost has likes get the string and parse it to JSON, for each like create new fblike
+    unless @fbpost.likes_data == '0'
       likes = string_to_json(@fbpost.likes_data) #private section#
       likes.each do |like|
         @fbpost.fblikes.create(fblikes_params(like, @fbpost.fb_user_token)) #private section#
@@ -33,7 +34,8 @@ class FbpostsController < ApplicationController
        ) #private section#
     end
 
-    if @fbpost.comments_data != '0'
+    #if fbpost has comments get the string and parse it to JSON, for each comment create new fbcomment
+    unless @fbpost.comments_data == '0'
       comments = string_to_json(@fbpost.comments_data) #private section#
       comments.each do |comment|
         @fbpost.fbcomments.create(fbcomments_params(comment, @fbpost.fb_user_token)) #private section#
@@ -73,8 +75,13 @@ class FbpostsController < ApplicationController
 
   def get_overall_gender_percentage
     #get user's token to identify the user
-    @result = Fbpost.where(bpopToken:params['bpopToken'])
-    render json: @result
+    user_posts = Fbpost.where(bpopToken:params['bpopToken'])
+
+    likes_percentage = get_overall_gender_percentage_likes(user_posts)
+    comments_percentage = get_overall_gender_percentage_comments(user_posts)
+
+      render json: final_gender_percentage(likes_percentage, comments_percentage)
+
   end
 
 
@@ -92,7 +99,7 @@ class FbpostsController < ApplicationController
 
 
     def fbpost_params
-      params.require(:fbpost).permit(:story, :message, :likes, :likes_data, :comments_data, :integer, :url, :date, :bpopToken, :fb_user_token)
+      params.require(:fbpost).permit(:story, :message, :likes, :comments, :likes_data, :comments_data, :integer, :url, :date, :bpopToken, :fb_user_token)
     end
 
 
@@ -137,23 +144,19 @@ class FbpostsController < ApplicationController
           genders[gender.gender] += 1
         end
       end
+
+      if genders.empty?
+        return {male: 0, female: 0}
+      else
         #calculate how many likes recieved
         total = genders.values.inject(:+)
         #calculate female percentage
-        female_percentage = (100).to_f / (total).to_f * genders["female"].to_f
+          female_percentage = (100).to_f / (total).to_f * genders["female"].to_f || 0
         #calculate male percentage
-        male_percentage = 100 - female_percentage
-
-        if female_percentage == NaN
-          female_percentage = 0
-        end
-
-        if male_percentage == NaN
-          male_percentage = 0
-        end
-
-      #store and return data into a hash
-      genders_percentage = {male: male_percentage, female: female_percentage}
+          male_percentage = 100 - female_percentage || 0
+        #store and return data into a hash
+        {male: male_percentage, female: female_percentage}
+      end
     end
 
 
@@ -166,23 +169,80 @@ class FbpostsController < ApplicationController
           genders[gender.gender] += 1
         end
       end
+
+      if genders.empty?
+        return {male: 0, female: 0}
+      else
         #calculate how many comments recieved
         total = genders.values.inject(:+)
         #calculate female percentage
-        female_percentage = (100).to_f / (total).to_f * genders["female"].to_f
+        female_percentage = (100).to_f / (total).to_f * genders["female"].to_f || 0
         #calculate male percentage
-        male_percentage = 100 - female_percentage
+        male_percentage = 100 - female_percentage || 0
+        #store and return data into a hash
+        {male: male_percentage, female: female_percentage}
+      end
+    end
 
-        if female_percentage == NaN
-          female_percentage = 0
+    def get_overall_gender_percentage_likes(user_posts)
+      #intialize empty hash
+      genders = Hash.new 0
+      #for each gender type add one to the count
+      user_posts.each do |post|
+        post.likesGenderPercentage.each do |key, value|
+          genders[key] += value
         end
+      end
+        #calculate how many likes recieved
+        total = genders.values.inject(:+)
+        #calculate female percentage
+          female_percentage = (100).to_f / (total).to_f * genders[:female].to_f || 0
+        #calculate male percentage
+          male_percentage = 100 - female_percentage || 0
+        #store and return data into a hash
+        {male: male_percentage, female: female_percentage}
+    end
 
-        if male_percentage == NaN
-          male_percentage = 0
+
+    def get_overall_gender_percentage_comments(user_posts)
+      #intialize empty hash
+      genders = Hash.new 0
+      #for each gender type add one to the count
+      user_posts.each do |post|
+        post.commentsGenderPercentage.each do |key, value|
+          genders[key] += value
         end
+      end
+        #calculate how many likes recieved
+        total = genders.values.inject(:+)
+        #calculate female percentage
+          female_percentage = (100).to_f / (total).to_f * genders[:female].to_f || 0
+        #calculate male percentage
+          male_percentage = 100 - female_percentage || 0
+        #store and return data into a hash
+        {male: male_percentage, female: female_percentage}
+    end
 
-      #store and return data into a hash
-      genders_percentage = {male: male_percentage, female: female_percentage}
+
+    def final_gender_percentage(likes_percentage, comments_percentage)
+      #intialize empty hash
+      genders = Hash.new 0
+      #for each gender type add one to the count
+      likes_percentage.each do |key, value|
+          genders[key] += value
+        end
+      #for each gender type add one to the count
+      comments_percentage.each do |key, value|
+          genders[key] += value
+        end
+        #calculate how many likes recieved
+        total = genders.values.inject(:+)
+        #calculate female percentage
+          female_percentage = (100).to_f / (total).to_f * genders[:female].to_f || 0
+        #calculate male percentage
+          male_percentage = 100 - female_percentage || 0
+        #store and return data into a hash
+        {male: male_percentage, female: female_percentage}
     end
 
 end
