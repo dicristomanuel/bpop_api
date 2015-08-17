@@ -5,10 +5,8 @@ class FblikesController < ApplicationController
   # GET /fblikes
   # GET /fblikes.json
   def index
-
     @fblikes = Fblike.all
     render json: @fblikes
-
   end
 
   # since=one%20month%20ago

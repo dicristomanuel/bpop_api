@@ -4,13 +4,12 @@ class FbpostsController < ApplicationController
   # GET /fbposts
   # GET /fbposts.json
   def index
-
     @fbposts = Fbpost.all
     render json: @fbposts
-
   end
 
-  # since=one%20month%20ago
+
+  # query option: since=one%20month%20ago
   def show
     if params[:since]
       sinceDate = Chronic.parse(params[:since])
@@ -23,46 +22,15 @@ class FbpostsController < ApplicationController
 
 
 
-  # POST /fbposts
-  # POST /fbposts.json
   def create
     #creating new fbpost
     @fbpost = Fbpost.new(fbpost_params) #private section#
     if @fbpost.save
-    #if fbpost has likes get the string and parse it to JSON, for each like create new fblike
-    unless @fbpost.likes_data == '0'
-      likes = string_to_json(@fbpost.likes_data) #private section#
-      likes.each do |like|
-        @fbpost.fblikes.create(fblikes_params(like, @fbpost.fb_user_token, @fbpost.bpopToken, @fbpost.date)) #private section#
-      end
-      likesGenderPercentage = calculate_gender_percentage_likes(@fbpost.fblikes)
-      @fbpost.update(
-        likesGenderPercentage: likesGenderPercentage
-       ) #private section#
-    end
-
-    #if fbpost has comments get the string and parse it to JSON, for each comment create new fbcomment
-    unless @fbpost.comments_data == '0'
-      comments = string_to_json(@fbpost.comments_data) #private section#
-      comments.each do |comment|
-        #check if the user who made the comment already made a comment for the same post (grabbing unique comments only)
-        if @fbpost.fbcomments.empty?
-          #if fbcomments array empty create the new comment
-          @fbpost.fbcomments.create(fbcomments_params(comment, @fbpost.fb_user_token, @fbpost.bpopToken, @fbpost.date)) #private section#
-        else
-          #if not empty check if the user already made a comment
-          present = @fbpost.fbcomments.any? {|existingComment| existingComment['user_name'].include?(comment['from']['name'])}
-          unless present
-              @fbpost.fbcomments.create(fbcomments_params(comment, @fbpost.fb_user_token, @fbpost.bpopToken, @fbpost.date)) #private section#
-          end
-        end
-      end
-      commentsGenderPercentage = calculate_gender_percentage_comments(@fbpost.fbcomments)
-      @fbpost.update(
-        commentsGenderPercentage: commentsGenderPercentage
-       ) #private section#
-    end
-
+      #follow the logic to create post's likes
+      handle_likes(@fbpost)
+      #follow the logic to create post's comments
+      handle_comments(@fbpost)
+      #return @fbpost
       render json: @fbpost, status: :created, location: @fbpost
     else
       render json: @fbpost.errors, status: :unprocessable_entity
@@ -91,13 +59,13 @@ class FbpostsController < ApplicationController
 
 
   def get_overall_gender_percentage
-    #get user's token to identify the user
+    #get user's token to identify the user who's requesting the data
     user_posts = Fbpost.where(bpopToken:params['bpopToken'])
-
-    likes_percentage = get_overall_gender_percentage_likes(user_posts)
-    comments_percentage = get_overall_gender_percentage_comments(user_posts)
-
-      render json: final_gender_percentage(likes_percentage, comments_percentage)
+      #get percentages for likes and comments
+      likes_percentage = get_overall_gender_percentage_likes(user_posts)
+      comments_percentage = get_overall_gender_percentage_comments(user_posts)
+    #combine percentages to return the final percentage
+    render json: final_gender_percentage(likes_percentage, comments_percentage)
 
   end
 
@@ -178,6 +146,47 @@ class FbpostsController < ApplicationController
       # --- --- --- --- --- --- --- --- #
 
     end
+
+
+    def handle_likes(fbpost)
+      #if fbpost has likes get the string and parse it to JSON, for each like create new fblike
+      unless fbpost.likes_data == '0'
+        likes = string_to_json(fbpost.likes_data) #private section#
+        likes.each do |like|
+          fbpost.fblikes.create(fblikes_params(like, fbpost.fb_user_token, fbpost.bpopToken, fbpost.date)) #private section#
+        end
+        likesGenderPercentage = calculate_gender_percentage_likes(fbpost.fblikes)
+        fbpost.update(
+          likesGenderPercentage: likesGenderPercentage
+         ) #private section#
+      end
+    end
+
+
+    def handle_comments(fbpost)
+      #if fbpost has comments get the string and parse it to JSON, for each comment create new fbcomment
+      unless fbpost.comments_data == '0'
+        comments = string_to_json(fbpost.comments_data) #private section#
+        comments.each do |comment|
+          #check if the user who made the comment already made a comment for the same post (grabbing unique comments only)
+          if fbpost.fbcomments.empty?
+            #if fbcomments array empty create the new comment
+            fbpost.fbcomments.create(fbcomments_params(comment, fbpost.fb_user_token, fbpost.bpopToken, fbpost.date)) #private section#
+          else
+            #if not empty check if the user already made a comment
+            present = fbpost.fbcomments.any? {|existingComment| existingComment['user_name'].include?(comment['from']['name'])}
+            unless present
+                fbpost.fbcomments.create(fbcomments_params(comment, fbpost.fb_user_token, fbpost.bpopToken, fbpost.date)) #private section#
+            end
+          end
+        end
+        commentsGenderPercentage = calculate_gender_percentage_comments(fbpost.fbcomments)
+        fbpost.update(
+          commentsGenderPercentage: commentsGenderPercentage
+         ) #private section#
+      end
+    end
+
 
 
     def calculate_gender_percentage_likes(likes)
