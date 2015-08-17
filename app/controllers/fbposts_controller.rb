@@ -45,7 +45,17 @@ class FbpostsController < ApplicationController
     unless @fbpost.comments_data == '0'
       comments = string_to_json(@fbpost.comments_data) #private section#
       comments.each do |comment|
-        @fbpost.fbcomments.create(fbcomments_params(comment, @fbpost.fb_user_token, @fbpost.bpopToken, @fbpost.date)) #private section#
+        #check if the user who made the comment already made a comment for the same post (grabbing unique comments only)
+        if @fbpost.fbcomments.empty?
+          #if fbcomments array empty create the new comment
+          @fbpost.fbcomments.create(fbcomments_params(comment, @fbpost.fb_user_token, @fbpost.bpopToken, @fbpost.date)) #private section#
+        else
+          #if not empty check if the user already made a comment
+          present = @fbpost.fbcomments.any? {|existingComment| existingComment['user_name'].include?(comment['from']['name'])}
+          unless present
+              @fbpost.fbcomments.create(fbcomments_params(comment, @fbpost.fb_user_token, @fbpost.bpopToken, @fbpost.date)) #private section#
+          end
+        end
       end
       commentsGenderPercentage = calculate_gender_percentage_comments(@fbpost.fbcomments)
       @fbpost.update(
