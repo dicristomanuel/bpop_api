@@ -5,10 +5,8 @@ class FbcommentsController < ApplicationController
   # GET /fbcomments
   # GET /fbcomments.json
   def index
-
     @fbcomments = Fbcomment.all
     render json: @fbcomments
-
   end
 
   # since=one%20month%20ago

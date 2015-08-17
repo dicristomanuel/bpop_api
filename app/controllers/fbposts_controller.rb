@@ -85,13 +85,13 @@ class FbpostsController < ApplicationController
 
     def fbpost_params
       params.require(:fbpost).permit(
+          :owner,
           :story,
           :message,
           :likes,
           :comments,
           :likes_data,
           :comments_data,
-          :integer,
           :url,
           :date,
           :bpopToken,
@@ -169,12 +169,15 @@ class FbpostsController < ApplicationController
         comments = string_to_json(fbpost.comments_data) #private section#
         comments.each do |comment|
           #check if the user who made the comment already made a comment for the same post (grabbing unique comments only)
-          if fbpost.fbcomments.empty?
-            #if fbcomments array empty create the new comment
+
+          #if fbcomments array is empty and the comment doesn't come from the owner, create the new comment
+          if fbpost.fbcomments.empty? && comment['from']['name'] != fbpost.owner
             fbpost.fbcomments.create(fbcomments_params(comment, fbpost.fb_user_token, fbpost.bpopToken, fbpost.date)) #private section#
-          else
+          #if fbcomments array is not empty and the comment doesn't come from the owner
+          elsif comment['from']['name'] != fbpost.owner
             #if not empty check if the user already made a comment
             present = fbpost.fbcomments.any? {|existingComment| existingComment['user_name'].include?(comment['from']['name'])}
+            #create comment if user hasn't commented yet on the same post
             unless present
                 fbpost.fbcomments.create(fbcomments_params(comment, fbpost.fb_user_token, fbpost.bpopToken, fbpost.date)) #private section#
             end

@@ -9,6 +9,7 @@ class FblikesController < ApplicationController
     render json: @fblikes
   end
 
+
   # since=one%20month%20ago
   def show
       if params[:since]
@@ -19,7 +20,6 @@ class FblikesController < ApplicationController
       end
       render json: {count: @fblikes.length, likes: @fblikes}
     end
-
 
 
 
