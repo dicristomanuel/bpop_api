@@ -9,7 +9,7 @@ class FbpostsController < ApplicationController
   end
 
 
-  # query option: since=one%20month%20ago
+  # query option: since=one+month+ago
   def show
     if params[:since]
       sinceDate = Chronic.parse(params[:since])
@@ -88,6 +88,7 @@ class FbpostsController < ApplicationController
           :owner,
           :story,
           :message,
+          :picture,
           :likes,
           :comments,
           :likes_data,

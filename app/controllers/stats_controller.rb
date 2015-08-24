@@ -26,7 +26,7 @@ class StatsController < ApplicationController
   end
 
 
-  def searchFan
+  def searchFan #add COMMENTS HERE
     likes    = Fblike.where(user_name: params[:userfan])
     comments = Fbcomment.where(user_name: params[:userfan])
     @postsFromLikes = []
@@ -47,6 +47,36 @@ class StatsController < ApplicationController
     render json: [(@postsFromLikes + @postsFromComments).length, @postsFromLikes + @postsFromComments]
   end
 
+  def searchGroupFans
+    @common_likes = []
+    names = []
+    group_fans = []
+    params[:users_fans].each {|key, value| group_fans << value}
+
+    Fbpost.all.each do |post|
+      unless post['likes_data'] == '0'
+        JSON.parse(post['likes_data']).each do |like|
+          names << like['name']
+        end
+
+        if group_fans.all? {|name| names.include?(name)}
+          @common_likes << post
+        end
+      end
+
+      unless post['comments_data'] == '0'
+        JSON.parse(post['comments_data']).each do |comment|
+          names << comment['from']['name']
+        end
+
+        if group_fans.all? {|name| names.include?(name)}
+          @common_likes << post
+        end
+      end
+      names = []
+    end
+    render json: @common_likes.uniq
+  end
 
 
 end

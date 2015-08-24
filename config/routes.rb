@@ -9,6 +9,7 @@ Rails.application.routes.draw do
   get '/get-gender-percentage/:bpopToken', to: 'fbposts#get_overall_gender_percentage'
   get '/stats/topfan/:bpopToken', to: 'stats#topfan'
   get '/stats/searchfan/:bpopToken', to: 'stats#searchFan'
+  get '/stats/searchgroup/:bpopToken', to: 'stats#searchGroupFans'
 
 end
 
