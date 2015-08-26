@@ -40,12 +40,19 @@ class FbpostsController < ApplicationController
   # PATCH/PUT /fbposts/1
   # PATCH/PUT /fbposts/1.json
   def update
-    @fbpost = Fbpost.find(params[:id])
-
-    if @fbpost.update(fbpost_params) #private section#
-      head :no_content
+    if @fbpost
+      if @fbpost.update(fbpost_params) #private section#
+        head :no_content
+      else
+        render json: @fbpost.errors, status: :unprocessable_entity
+      end
     else
-      render json: @fbpost.errors, status: :unprocessable_entity
+      @fbpost = Fbpost.new(fbpost_params) #private section#
+        if @fbpost.save
+          head :no_content
+        else
+          render json: @fbpost.errors, status: :unprocessable_entity
+        end
     end
   end
 
@@ -53,8 +60,7 @@ class FbpostsController < ApplicationController
   # DELETE /fbposts/1.json
   def destroy
     @fbpost.destroy
-
-    head :no_content
+      head :no_content
   end
 
 
@@ -79,7 +85,7 @@ class FbpostsController < ApplicationController
 
 
     def set_fbpost
-      @fbpost = Fbpost.find(params[:id])
+      @fbpost = Fbpost.find_by(fb_post_id: params[:id])
     end
 
 
@@ -96,7 +102,8 @@ class FbpostsController < ApplicationController
           :url,
           :date,
           :bpopToken,
-          :fb_user_token
+          :fb_user_token,
+          :fb_post_id
         )
     end
 
@@ -302,5 +309,6 @@ class FbpostsController < ApplicationController
         #store and return data into a hash
         {total: {male: male_percentage, female: female_percentage}, likes: likes_percentage, comments: comments_percentage}
     end
+
 
 end

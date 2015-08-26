@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150824004422) do
+ActiveRecord::Schema.define(version: 20150826005148) do
 
   create_table "fbcomments", force: :cascade do |t|
     t.string   "user_name"
@@ -57,6 +57,7 @@ ActiveRecord::Schema.define(version: 20150824004422) do
     t.string   "comments"
     t.string   "owner"
     t.string   "picture"
+    t.string   "fb_post_id"
   end
 
 end
