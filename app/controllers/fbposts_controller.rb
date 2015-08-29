@@ -1,5 +1,6 @@
 class FbpostsController < ApplicationController
   before_action :set_fbpost, only: [:update, :destroy]
+  before_action :set_user, only: [:update]
 
   # GET /fbposts
   # GET /fbposts.json
@@ -23,37 +24,58 @@ class FbpostsController < ApplicationController
 
 
   def create
+    @user = User.first_or_create(bpopToken: params['fbpost']['bpopToken'])
     #creating new fbpost
-    @fbpost = Fbpost.new(fbpost_params) #private section#
-    if @fbpost.save
-      #follow the logic to create post's likes
-      handle_likes(@fbpost)
-      #follow the logic to create post's comments
-      handle_comments(@fbpost)
-      #return @fbpost
-      render json: @fbpost, status: :created, location: @fbpost
-    else
-      render json: @fbpost.errors, status: :unprocessable_entity
-    end
+    @fbpost = @user.fbposts.create(fbpost_params) #private section#
+      if @fbpost.save
+        #follow the logic to create post's likes
+        handle_likes(@fbpost)
+        #follow the logic to create post's comments
+        handle_comments(@fbpost)
+        #return @fbpost
+        render json: @fbpost, status: :created, location: @fbpost
+      else
+        render json: @fbpost.errors, status: :unprocessable_entity
+      end
   end
 
   # PATCH/PUT /fbposts/1
   # PATCH/PUT /fbposts/1.json
   def update
-    if @fbpost
-      if @fbpost.update(fbpost_params) #private section#
-        head :no_content
-      else
-        render json: @fbpost.errors, status: :unprocessable_entity
-      end
-    else
-      @fbpost = Fbpost.new(fbpost_params) #private section#
-        if @fbpost.save
-          head :no_content
-        else
-          render json: @fbpost.errors, status: :unprocessable_entity
+
+  if @fbpost = Fbpost.find_by_fb_post_id(params[:fbpost][:fb_post_id])
+      @fbpost.update_attributes(fbpost_params)
+        if @fbpost.changed?
+          #follow the logic to create post's likes
+          handle_likes(@fbpost)
+          #follow the logic to create post's comments
+          handle_comments(@fbpost)
         end
+  if @fbpost[:is_last] == 'false'
+    method = 'post'
+    posts_id_container(@user, method)
+  else
+      to_delete = @user.tempPostsIdContainer - @user.fbposts | @user.fbposts - @user.tempPostsIdContainer
+      @user.fbposts.each do |post|
+        unless @user.tempPostsIdContainer.include?(post[:fb_post_id])
+
+          Fbpost.where(fb_post_id: post[:fb_post_id]).destroy_all
+        end
+      end
+
+
+        method = 'delete'
+      posts_id_container(@user, method)
+    to_delete = []
     end
+  else
+    @user.fbposts.create(fbpost_params)
+    @fbpost = Fbpost.find_by_fb_post_id(:fb_post_id)
+    #follow the logic to create post's likes
+    handle_likes(@fbpost)
+    #follow the logic to create post's comments
+    handle_comments(@fbpost)
+  end
   end
 
   # DELETE /fbposts/1
@@ -79,13 +101,26 @@ class FbpostsController < ApplicationController
 
   private
 
+    def posts_id_container(user, method)
+      if method == 'delete'
+        user.tempPostsIdContainer.clear
+      else
+        user.tempPostsIdContainer << params['fbpost']['fb_post_id']
+      end
+      user.tempPostsIdContainer_will_change!
+      user.save!
+    end
+
     def string_to_json(this_string)
       JSON.parse this_string.gsub('=>', ':')
     end
 
-
     def set_fbpost
       @fbpost = Fbpost.find_by(fb_post_id: params[:id])
+    end
+
+    def set_user
+      @user = User.find_by(bpopToken: params[:fbpost][:bpopToken])
     end
 
 
@@ -103,7 +138,8 @@ class FbpostsController < ApplicationController
           :date,
           :bpopToken,
           :fb_user_token,
-          :fb_post_id
+          :fb_post_id,
+          :is_last
         )
     end
 

@@ -1,0 +1,4 @@
+Notes
+
+# if Fbpost belongs_to StatsHelper - StatsHelper has_many fbposts
+  # StatsHelper.fbposts.create(post_id: fb_post_id)

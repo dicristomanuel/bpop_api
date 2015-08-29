@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150826005148) do
+ActiveRecord::Schema.define(version: 20150829001956) do
 
   create_table "fbcomments", force: :cascade do |t|
     t.string   "user_name"
@@ -58,6 +58,17 @@ ActiveRecord::Schema.define(version: 20150826005148) do
     t.string   "owner"
     t.string   "picture"
     t.string   "fb_post_id"
+    t.integer  "user_id"
+    t.string   "is_last"
+  end
+
+  add_index "fbposts", ["user_id"], name: "index_fbposts_on_user_id"
+
+  create_table "users", force: :cascade do |t|
+    t.string   "bpopToken"
+    t.datetime "created_at",           null: false
+    t.datetime "updated_at",           null: false
+    t.string   "tempPostsIdContainer"
   end
 
 end
