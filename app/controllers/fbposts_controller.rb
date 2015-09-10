@@ -1,5 +1,4 @@
 class FbpostsController < ApplicationController
-  before_action :set_fbpost, only: [:update, :destroy]
   before_action :set_user, only: [:update]
 
   # GET /fbposts
@@ -18,7 +17,7 @@ class FbpostsController < ApplicationController
     else
       @fbposts = Fbpost.where(bpopToken: params[:id])
     end
-    render json: @fbposts
+    render json: {count: @fbposts.length, fbposts: @fbposts}
   end
 
 
@@ -42,40 +41,44 @@ class FbpostsController < ApplicationController
   # PATCH/PUT /fbposts/1
   # PATCH/PUT /fbposts/1.json
   def update
-
-  if @fbpost = Fbpost.find_by_fb_post_id(params[:fbpost][:fb_post_id])
-      @fbpost.update_attributes(fbpost_params)
-        if @fbpost.changed?
-          #follow the logic to create post's likes
-          handle_likes(@fbpost)
-          #follow the logic to create post's comments
-          handle_comments(@fbpost)
-        end
-  if @fbpost[:is_last] == 'false'
-    method = 'post'
-    posts_id_container(@user, method)
-  else
-      to_delete = @user.tempPostsIdContainer - @user.fbposts | @user.fbposts - @user.tempPostsIdContainer
-      @user.fbposts.each do |post|
-        unless @user.tempPostsIdContainer.include?(post[:fb_post_id])
-
-          Fbpost.where(fb_post_id: post[:fb_post_id]).destroy_all
-        end
+    #check if post is already present in the database
+    if @fbpost = Fbpost.find_by_fb_post_id(params[:fbpost][:fb_post_id])
+        #update post's attribute
+        @fbpost.update_attributes(fbpost_params)
+          #calculate likes / comments only if attributes have changed (this will slow down the process)
+          if @fbpost.changed?
+            #follow the logic to create post's likes
+            handle_likes(@fbpost)
+            #follow the logic to create post's comments
+            handle_comments(@fbpost)
+          end
+            #store every post's Id into a temp container
+            method = 'post'
+            posts_id_container(@user, method)
+          #check if this is the last post sent to update
+      else
+        #if post is not present create new one
+        @user.fbposts.create(fbpost_params)
+        @fbpost = Fbpost.find_by_fb_post_id(params[:fbpost][:fb_post_id])
+        #follow the logic to create post's likes
+        handle_likes(@fbpost)
+        #follow the logic to create post's comments
+        handle_comments(@fbpost)
+        method = 'post'
+        posts_id_container(@user, method)
       end
 
-
-        method = 'delete'
+      if @fbpost[:is_last] == 'true'
+        #compare the updated list of posts and check if there are any extra in database that need to be deleted
+        @user.fbposts.each do |post|
+          unless @user.tempPostsIdContainer.include?(post[:fb_post_id])
+             Fbpost.where(fb_post_id: post[:fb_post_id]).destroy_all
+          end
+        end
+      #reset temp container to empty
+      method = 'delete'
       posts_id_container(@user, method)
-    to_delete = []
-    end
-  else
-    @user.fbposts.create(fbpost_params)
-    @fbpost = Fbpost.find_by_fb_post_id(:fb_post_id)
-    #follow the logic to create post's likes
-    handle_likes(@fbpost)
-    #follow the logic to create post's comments
-    handle_comments(@fbpost)
-  end
+      end
   end
 
   # DELETE /fbposts/1
@@ -94,7 +97,6 @@ class FbpostsController < ApplicationController
       comments_percentage = get_overall_gender_percentage_comments(user_posts)
     #combine percentages to return the final percentage
     render json: final_gender_percentage(likes_percentage, comments_percentage)
-
   end
 
 
@@ -105,7 +107,10 @@ class FbpostsController < ApplicationController
       if method == 'delete'
         user.tempPostsIdContainer.clear
       else
-        user.tempPostsIdContainer << params['fbpost']['fb_post_id']
+        if params[:fbpost][:fb_post_id] == '590293087779465_620688661406574'
+          binding.pry
+        end
+        user.tempPostsIdContainer << params[:fbpost][:fb_post_id]
       end
       user.tempPostsIdContainer_will_change!
       user.save!
@@ -113,10 +118,6 @@ class FbpostsController < ApplicationController
 
     def string_to_json(this_string)
       JSON.parse this_string.gsub('=>', ':')
-    end
-
-    def set_fbpost
-      @fbpost = Fbpost.find_by(fb_post_id: params[:id])
     end
 
     def set_user
