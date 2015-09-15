@@ -5,21 +5,32 @@ class FbcommentsController < ApplicationController
   # GET /fbcomments
   # GET /fbcomments.json
   def index
-    @fbcomments = Fbcomment.all
+    if params[:limit]
+      @fbcomments = Fbcomment.all.first(params[:limit].to_i)
+    else
+      @fbcomments = Fbcomment.all
+   end
     render json: @fbcomments
   end
 
-  # since=one%20month%20ago
+  # since=one+month+ago
   def show
       if params[:since]
         sinceDate = Chronic.parse(params[:since])
-        @fbcomments = Fbcomment.where("date > ? and bpopToken == ?", sinceDate, params[:id])
+        if params[:limit]
+          @fbcomments = Fbcomment.where("date > ? and bpopToken == ?", sinceDate, params[:id]).first(params[:limit].to_i)
+        else
+          @fbcomments = Fbcomment.where("date > ? and bpopToken == ?", sinceDate, params[:id])
+        end
       else
-        @fbcomments = Fbcomment.where(bpopToken: params[:id])
+        if params[:limit]
+          @fbcomments = Fbcomment.where(bpopToken: params[:id]).first(params[:limit])
+        else
+          @fbcomments = Fbcomment.where(bpopToken: params[:id])
+        end
       end
       render json: {count: @fbcomments.length, likes: @fbcomments}
     end
-
 
 
 

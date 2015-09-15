@@ -5,19 +5,32 @@ class FblikesController < ApplicationController
   # GET /fblikes
   # GET /fblikes.json
   def index
-    @fblikes = Fblike.all
+    if params[:limit]
+      @fblikes = Fblike.all.first(params[:limit].to_i)
+    else
+      @fblikes = Fblike.all
+   end
     render json: @fblikes
   end
 
 
-  # since=one%20month%20ago
+  # since=one+month+ago
   def show
       if params[:since]
         sinceDate = Chronic.parse(params[:since])
-        @fblikes = Fblike.where("date > ? and bpopToken == ?", sinceDate, params[:id])
+        if params[:limit]
+          @fblikes = Fblike.where("date > ? and bpopToken == ?", sinceDate, params[:id]).first(params[:limit].to_i)
+        else
+          @fblikes = Fblike.where("date > ? and bpopToken == ?", sinceDate, params[:id])
+        end
       else
-        @fblikes = Fblike.where(bpopToken: params[:id])
+        if params[:limit]
+          @fblikes = Fblike.where(bpopToken: params[:id]).first(params[:limit])
+        else
+          @fblikes = Fblike.where(bpopToken: params[:id])
+        end
       end
+
       render json: {count: @fblikes.length, likes: @fblikes}
     end
 
