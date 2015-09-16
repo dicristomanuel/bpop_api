@@ -29,7 +29,7 @@ class FbcommentsController < ApplicationController
           @fbcomments = Fbcomment.where(bpopToken: params[:id])
         end
       end
-      render json: {count: @fbcomments.length, likes: @fbcomments}
+      render json: {count: @fbcomments.length, comments: @fbcomments}
     end
 
 

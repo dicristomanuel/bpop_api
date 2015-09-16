@@ -13,11 +13,19 @@ class FbpostsController < ApplicationController
   def show
     if params[:since]
       sinceDate = Chronic.parse(params[:since])
-      @fbposts = Fbpost.where("date > ? and bpopToken == ?", sinceDate, params[:id])
+      if params[:limit]
+        @fbposts = Fbpost.where("date > ? and bpopToken == ?", sinceDate, params[:id]).first(params[:limit].to_i)
+      else
+        @fbposts = Fbpost.where("date > ? and bpopToken == ?", sinceDate, params[:id])
+      end
     else
-      @fbposts = Fbpost.where(bpopToken: params[:id])
+      if params[:limit]
+        @fbposts = Fbpost.where(bpopToken: params[:id]).first(params[:limit])
+      else
+        @fbposts = Fbpost.where(bpopToken: params[:id])
+      end
     end
-    render json: {count: @fbposts.length, fbposts: @fbposts}
+    render json: {count: @fbposts.length, posts: @fbposts}
   end
 
 
