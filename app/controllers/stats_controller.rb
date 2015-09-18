@@ -78,5 +78,10 @@ class StatsController < ApplicationController
     render json: @common_likes.uniq
   end
 
+  def get_fan_id
+    @fan = Fblike.where(user_name: params[:userFanName], bpopToken: params[:bpopToken])[0].user_facebook_id
+    render json: @fan
+  end
+
 
 end
