@@ -11,18 +11,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150829001956) do
+ActiveRecord::Schema.define(version: 20150918232543) do
 
   create_table "fbcomments", force: :cascade do |t|
     t.string   "user_name"
-    t.string   "fbuser_id"
     t.string   "message"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at",       null: false
+    t.datetime "updated_at",       null: false
     t.integer  "fbpost_id"
     t.string   "gender"
     t.string   "bpopToken"
     t.string   "date"
+    t.string   "user_facebook_id"
   end
 
   add_index "fbcomments", ["fbpost_id"], name: "index_fbcomments_on_fbpost_id"

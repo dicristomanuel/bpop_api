@@ -169,7 +169,7 @@ class FbpostsController < ApplicationController
       #find the gender of each of the users
       gender = get_gender(fb_user_token, comment['from']['id'])
       return {
-        fbuser_id: comment['from']['id'],
+        user_facebook_id: comment['from']['id'],
         user_name: comment['from']['name'],
         message: comment['message'],
         gender: gender,

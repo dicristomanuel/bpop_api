@@ -79,8 +79,9 @@ class StatsController < ApplicationController
   end
 
   def get_fan_id
-    @fan = Fblike.where(user_name: params[:userFanName], bpopToken: params[:bpopToken])[0].user_facebook_id
-    render json: @fan
+    @fan = Fblike.where(user_name: params[:userFanName], bpopToken: params[:bpopToken])[0] || Fbcomment.where(user_name: params[:userFanName], bpopToken: params[:bpopToken])[0]
+      @fan = @fan.user_facebook_id
+      render json: [@fan, params[:userFanName]]
   end
 
 
