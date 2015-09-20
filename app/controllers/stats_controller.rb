@@ -51,7 +51,7 @@ class StatsController < ApplicationController
     @common_likes = []
     names = []
     group_fans = []
-    params[:users_fans].each {|key, value| group_fans << value}
+    params[:users_fans].split(",").each {|fan| group_fans << fan}
 
     Fbpost.all.each do |post|
       unless post['likes_data'] == '0'
