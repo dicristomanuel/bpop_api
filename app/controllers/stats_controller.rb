@@ -32,6 +32,7 @@ class StatsController < ApplicationController
     @postsFromLikes = []
     @postsFromComments = []
 
+
     unless likes.empty?
       likes.each do |like|
         @postsFromLikes += Fbpost.where(id: like.fbpost_id)
@@ -75,7 +76,7 @@ class StatsController < ApplicationController
       end
       names = []
     end
-    render json: @common_likes.uniq
+    render json: { count: @common_likes.uniq.length, common: @common_likes.uniq }
   end
 
   def get_fan_id
