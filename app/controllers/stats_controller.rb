@@ -45,7 +45,8 @@ class StatsController < ApplicationController
       end
     end
 
-    render json: [(@postsFromLikes + @postsFromComments).length, @postsFromLikes + @postsFromComments]
+    @allPosts = @postsFromLikes + @postsFromComments
+      render :json => @allPosts, :except=>  [:fb_user_token, :bpopToken, :user_id]
   end
 
   def searchGroupFans
@@ -76,7 +77,7 @@ class StatsController < ApplicationController
       end
       names = []
     end
-    render json: { count: @common_likes.uniq.length, common: @common_likes.uniq }
+    render json: @common_likes.uniq, :except=>  [:fb_user_token, :bpopToken, :user_id]
   end
 
   def get_fan_id
