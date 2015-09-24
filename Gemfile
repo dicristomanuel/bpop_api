@@ -21,7 +21,7 @@ gem 'chronic'
 #to handle dates
 gem 'guess'
 
-gem 'thin'
+gem 'puma'
 
 gem 'better_errors'
 
