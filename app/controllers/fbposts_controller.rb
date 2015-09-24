@@ -27,7 +27,7 @@ class FbpostsController < ApplicationController
     end
     render json: {count: @fbposts.length, posts: @fbposts}
   end
-  
+
 
   # PATCH/PUT /fbposts/1
   # PATCH/PUT /fbposts/1.json
@@ -47,6 +47,10 @@ class FbpostsController < ApplicationController
             #store every post's Id into a temp container
             method = 'post'
             posts_id_container(@user, method)
+
+            if @fbpost[:is_last] == 'true'
+              @user.update_attributes(is_parsing_complete: true)
+            end
           #check if this is the last post sent to update
       else
         #if post is not present create new one
