@@ -29,7 +29,8 @@ class FbcommentsController < ApplicationController
           @fbcomments = Fbcomment.where(bpopToken: params[:id])
         end
       end
-      render json: {count: @fbcomments.length, comments: @fbcomments}
+      # render json: {count: @fbcomments.length, comments: @fbcomments} PREVIOUS VERSION
+      render :json => @fbcomments, :except=>  [:bpopToken, :fbpost_id, :user_facebook_id]
     end
 
 
