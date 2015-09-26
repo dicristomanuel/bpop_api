@@ -25,7 +25,7 @@ class FbpostsController < ApplicationController
         @fbposts = Fbpost.where(bpopToken: params[:id])
       end
     end
-    render json: {count: @fbposts.length, posts: @fbposts}
+    render json: @fbposts, :except=>  [:fb_user_token, :bpopToken, :user_id, :fb_post_id]
   end
 
 
