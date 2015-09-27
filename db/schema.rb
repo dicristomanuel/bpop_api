@@ -13,6 +13,9 @@
 
 ActiveRecord::Schema.define(version: 20150924185121) do
 
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "fbcomments", force: :cascade do |t|
     t.string   "user_name"
     t.string   "message"
@@ -25,7 +28,7 @@ ActiveRecord::Schema.define(version: 20150924185121) do
     t.string   "user_facebook_id"
   end
 
-  add_index "fbcomments", ["fbpost_id"], name: "index_fbcomments_on_fbpost_id"
+  add_index "fbcomments", ["fbpost_id"], name: "index_fbcomments_on_fbpost_id", using: :btree
 
   create_table "fblikes", force: :cascade do |t|
     t.datetime "created_at",       null: false
@@ -38,7 +41,7 @@ ActiveRecord::Schema.define(version: 20150924185121) do
     t.string   "date"
   end
 
-  add_index "fblikes", ["fbpost_id"], name: "index_fblikes_on_fbpost_id"
+  add_index "fblikes", ["fbpost_id"], name: "index_fblikes_on_fbpost_id", using: :btree
 
   create_table "fbposts", force: :cascade do |t|
     t.text     "story"
@@ -62,7 +65,7 @@ ActiveRecord::Schema.define(version: 20150924185121) do
     t.string   "is_last"
   end
 
-  add_index "fbposts", ["user_id"], name: "index_fbposts_on_user_id"
+  add_index "fbposts", ["user_id"], name: "index_fbposts_on_user_id", using: :btree
 
   create_table "users", force: :cascade do |t|
     t.string   "bpopToken"
@@ -72,4 +75,7 @@ ActiveRecord::Schema.define(version: 20150924185121) do
     t.boolean  "is_parsing_complete",  default: false
   end
 
+  add_foreign_key "fbcomments", "fbposts"
+  add_foreign_key "fblikes", "fbposts"
+  add_foreign_key "fbposts", "users"
 end

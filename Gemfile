@@ -13,7 +13,7 @@ gem 'spring', :group => :development
 
 gem "typhoeus"
 
-gem 'sqlite3'
+gem 'pg'
 
 gem "koala", "~> 2.0"
 #interact with facebook graph API
@@ -27,7 +27,7 @@ gem 'better_errors'
 
 gem 'binding_of_caller'
 
-
+gem 'rails_12factor', :group => :production
 
 # To use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
