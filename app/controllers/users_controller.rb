@@ -1,7 +1,7 @@
 class UsersController < ApplicationController
 
   def create_user
-    @user = User.create(bpoptoken: params['fbpost']['bpoptoken'])
+    @user = User.create(bpoptoken: params['bpoptoken'])
     render json: @user
   end
 
