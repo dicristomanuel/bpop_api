@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   resources :fblikes,    only: [:index, :show]
   resources :fbcomments, only: [:index, :show]
 
+  get '/', to: 'stats#home'
   get 'stats/topfan'
   get '/get-gender-percentage/:bpoptoken', to: 'fbposts#get_overall_gender_percentage'
   get '/stats/topfan/:bpoptoken', to: 'stats#topfan'
