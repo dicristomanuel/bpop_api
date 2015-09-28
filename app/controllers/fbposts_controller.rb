@@ -32,7 +32,7 @@ class FbpostsController < ApplicationController
   # PATCH/PUT /fbposts/1
   # PATCH/PUT /fbposts/1.json
   def create
-    @user = User.where(bpoptoken: params['fbpost']['bpoptoken'])
+    @user = User.where(bpoptoken: params['fbpost']['bpoptoken']).first
     #check if post is already present in the database
     if @fbpost = Fbpost.find_by_fb_post_id(params[:fbpost][:fb_post_id])
         #update post's attribute
@@ -49,32 +49,32 @@ class FbpostsController < ApplicationController
             posts_id_container(@user, method)
 
             if @fbpost[:is_last] == 'true'
-              @user.first.update_attributes(is_parsing_complete: true)
+              @user.update_attributes(is_parsing_complete: true)
             end
           #check if this is the last post sent to update
       else
         #if post is not present create new one
-        @user.first.fbposts.create(fbpost_params)
+        @user.fbposts.create(fbpost_params)
         @fbpost = Fbpost.find_by_fb_post_id(params[:fbpost][:fb_post_id])
         #follow the logic to create post's likes
         handle_likes(@fbpost)
         #follow the logic to create post's comments
         handle_comments(@fbpost)
         method = 'post'
-        posts_id_container(@user.first, method)
+        posts_id_container(@user, method)
       end
 
       if @fbpost[:is_last] == 'true'
-        @user.first.update_attributes(is_parsing_complete: true)
+        @user.update_attributes(is_parsing_complete: true)
         #compare the updated list of posts and check if there are any extra in database that need to be deleted
-        @user.first.fbposts.each do |post|
-          unless @user.first.tempPostsIdContainer.include?(post[:fb_post_id])
+        @user.fbposts.each do |post|
+          unless @user.tempPostsIdContainer.include?(post[:fb_post_id])
              Fbpost.where(fb_post_id: post[:fb_post_id]).destroy_all
           end
         end
       #reset temp container to empty
       method = 'delete'
-      posts_id_container(@user.first, method)
+      posts_id_container(@user, method)
       end
   end
 
