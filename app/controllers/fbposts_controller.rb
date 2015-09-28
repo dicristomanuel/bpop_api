@@ -33,49 +33,49 @@ class FbpostsController < ApplicationController
   # PATCH/PUT /fbposts/1.json
   def create
     @user = User.first_or_create(bpoptoken: params['fbpost']['bpoptoken'])
-    #check if post is already present in the database
-    if @fbpost = Fbpost.find_by_fb_post_id(params[:fbpost][:fb_post_id])
-        #update post's attribute
-        @fbpost.update_attributes(fbpost_params)
-          #calculate likes / comments only if attributes have changed (this will slow down the process)
-          if @fbpost.changed?
-            #follow the logic to create post's likes
-            handle_likes(@fbpost)
-            #follow the logic to create post's comments
-            handle_comments(@fbpost)
-          end
-            #store every post's Id into a temp container
-            method = 'post'
-            posts_id_container(@user, method)
-
-            if @fbpost[:is_last] == 'true'
-              @user.update_attributes(is_parsing_complete: true)
-            end
-          #check if this is the last post sent to update
-      else
-        #if post is not present create new one
-        @user.fbposts.create(fbpost_params)
-        @fbpost = Fbpost.find_by_fb_post_id(params[:fbpost][:fb_post_id])
-        #follow the logic to create post's likes
-        handle_likes(@fbpost)
-        #follow the logic to create post's comments
-        handle_comments(@fbpost)
-        method = 'post'
-        posts_id_container(@user, method)
-      end
-
-      if @fbpost[:is_last] == 'true'
-        @user.update_attributes(is_parsing_complete: true)
-        #compare the updated list of posts and check if there are any extra in database that need to be deleted
-        @user.fbposts.each do |post|
-          unless @user.tempPostsIdContainer.include?(post[:fb_post_id])
-             Fbpost.where(fb_post_id: post[:fb_post_id]).destroy_all
-          end
-        end
-      #reset temp container to empty
-      method = 'delete'
-      posts_id_container(@user, method)
-      end
+    # #check if post is already present in the database
+    # if @fbpost = Fbpost.find_by_fb_post_id(params[:fbpost][:fb_post_id])
+    #     #update post's attribute
+    #     @fbpost.update_attributes(fbpost_params)
+    #       #calculate likes / comments only if attributes have changed (this will slow down the process)
+    #       if @fbpost.changed?
+    #         #follow the logic to create post's likes
+    #         handle_likes(@fbpost)
+    #         #follow the logic to create post's comments
+    #         handle_comments(@fbpost)
+    #       end
+    #         #store every post's Id into a temp container
+    #         method = 'post'
+    #         posts_id_container(@user, method)
+    #
+    #         if @fbpost[:is_last] == 'true'
+    #           @user.update_attributes(is_parsing_complete: true)
+    #         end
+    #       #check if this is the last post sent to update
+    #   else
+    #     #if post is not present create new one
+    #     @user.fbposts.create(fbpost_params)
+    #     @fbpost = Fbpost.find_by_fb_post_id(params[:fbpost][:fb_post_id])
+    #     #follow the logic to create post's likes
+    #     handle_likes(@fbpost)
+    #     #follow the logic to create post's comments
+    #     handle_comments(@fbpost)
+    #     method = 'post'
+    #     posts_id_container(@user, method)
+    #   end
+    #
+    #   if @fbpost[:is_last] == 'true'
+    #     @user.update_attributes(is_parsing_complete: true)
+    #     #compare the updated list of posts and check if there are any extra in database that need to be deleted
+    #     @user.fbposts.each do |post|
+    #       unless @user.tempPostsIdContainer.include?(post[:fb_post_id])
+    #          Fbpost.where(fb_post_id: post[:fb_post_id]).destroy_all
+    #       end
+    #     end
+    #   #reset temp container to empty
+    #   method = 'delete'
+    #   posts_id_container(@user, method)
+    #   end
   end
 
   # DELETE /fbposts/1
