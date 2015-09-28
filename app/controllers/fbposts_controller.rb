@@ -32,7 +32,7 @@ class FbpostsController < ApplicationController
   # PATCH/PUT /fbposts/1
   # PATCH/PUT /fbposts/1.json
   def create
-    @user = User.first_or_create(bpoptoken: params['fbpost']['bpoptoken'])
+    @user = User.where(bpoptoken: params['fbpost']['bpoptoken'])
     #check if post is already present in the database
     if @fbpost = Fbpost.find_by_fb_post_id(params[:fbpost][:fb_post_id])
         #update post's attribute
