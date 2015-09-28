@@ -49,12 +49,12 @@ class FbpostsController < ApplicationController
             posts_id_container(@user, method)
 
             if @fbpost[:is_last] == 'true'
-              @user.update_attributes(is_parsing_complete: true)
+              @user.first.update_attributes(is_parsing_complete: true)
             end
           #check if this is the last post sent to update
       else
         #if post is not present create new one
-        @user.fbposts.create(fbpost_params)
+        @user.first.fbposts.create(fbpost_params)
         @fbpost = Fbpost.find_by_fb_post_id(params[:fbpost][:fb_post_id])
         #follow the logic to create post's likes
         handle_likes(@fbpost)
@@ -65,10 +65,10 @@ class FbpostsController < ApplicationController
       end
 
       if @fbpost[:is_last] == 'true'
-        @user.update_attributes(is_parsing_complete: true)
+        @user.first.update_attributes(is_parsing_complete: true)
         #compare the updated list of posts and check if there are any extra in database that need to be deleted
-        @user.fbposts.each do |post|
-          unless @user.tempPostsIdContainer.include?(post[:fb_post_id])
+        @user.first.fbposts.each do |post|
+          unless @user.first.tempPostsIdContainer.include?(post[:fb_post_id])
              Fbpost.where(fb_post_id: post[:fb_post_id]).destroy_all
           end
         end
