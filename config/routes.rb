@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
 
+  get 'home/index'
+
   resources :fbposts,    only: [:index, :create, :show]
   resources :fblikes,    only: [:index, :show]
   resources :fbcomments, only: [:index, :show]
