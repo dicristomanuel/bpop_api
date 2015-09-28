@@ -13,7 +13,7 @@ Rails.application.routes.draw do
   get '/stats/get-fan-id/:bpoptoken', to: 'stats#get_fan_id'
   get '/stats/searchfan/:bpoptoken', to: 'stats#searchFan'
   get '/stats/searchgroup/:bpoptoken', to: 'stats#searchGroupFans'
-  get '/is-complete/:bpoptoken', to: 'users#is_complete'
+  # get '/is-complete/:bpoptoken', to: 'users#is_complete'
   get '/is-complete-to-false/:bpoptoken', to: 'users#is_complete_to_false'
 
 end
