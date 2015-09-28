@@ -1,8 +1,8 @@
 class UsersController < ApplicationController
 
   def create_user
-    @user = User.first_or_create(bpoptoken: params['fbpost']['bpoptoken'])
-    render json: @user
+    User.create(bpoptoken: params['fbpost']['bpoptoken'])
+    render plain: 'success'
   end
 
   def is_complete
