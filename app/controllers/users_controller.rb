@@ -1,7 +1,6 @@
 class UsersController < ApplicationController
 
   def create_user
-    binding.pry
     User.create(bpoptoken: params['fbpost']['bpoptoken'])
     render plain: 'success'
   end
