@@ -61,7 +61,7 @@ class FbpostsController < ApplicationController
         #follow the logic to create post's comments
         handle_comments(@fbpost)
         method = 'post'
-        posts_id_container(@user, method)
+        posts_id_container(@user.first, method)
       end
 
       if @fbpost[:is_last] == 'true'
