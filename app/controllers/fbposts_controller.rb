@@ -74,7 +74,7 @@ class FbpostsController < ApplicationController
         end
       #reset temp container to empty
       method = 'delete'
-      posts_id_container(@user, method)
+      posts_id_container(@user.first, method)
       end
   end
 
