@@ -5,8 +5,8 @@ class StatsController < ApplicationController
     fans = Hash.new 0
       sinceDate = Chronic.parse(params[:since]) || Chronic.parse('six months ago')
     #getting all the likes and the comments for the user
-    userLikes         = Fblike.where("date > ? and bpopToken == ?", sinceDate, params[:bpopToken])
-    userComments      = Fbcomment.where("date > ? and bpopToken == ?", sinceDate, params[:bpopToken])
+    userLikes         = Fblike.where("date > ? and bpoptoken = ?", sinceDate, params[:bpoptoken])
+    userComments      = Fbcomment.where("date > ? and bpoptoken = ?", sinceDate, params[:bpoptoken])
        #grabbing all the usernames and adding 1 to the count everytime it appears
        userLikes.each do |user|
          fans[user[:user_name]] += 1
@@ -46,7 +46,7 @@ class StatsController < ApplicationController
     end
 
     @allPosts = @postsFromLikes + @postsFromComments
-      render :json => @allPosts, :except=>  [:fb_user_token, :bpopToken, :user_id]
+      render :json => @allPosts, :except=>  [:fb_user_token, :bpoptoken, :user_id]
   end
 
   def searchGroupFans
@@ -77,11 +77,11 @@ class StatsController < ApplicationController
       end
       names = []
     end
-    render json: @common_likes.uniq, :except=>  [:fb_user_token, :bpopToken, :user_id]
+    render json: @common_likes.uniq, :except=>  [:fb_user_token, :bpoptoken, :user_id]
   end
 
   def get_fan_id
-    @fan = Fblike.where(user_name: params[:userFanName], bpopToken: params[:bpopToken])[0] || Fbcomment.where(user_name: params[:userFanName], bpopToken: params[:bpopToken])[0]
+    @fan = Fblike.where(user_name: params[:userFanName], bpoptoken: params[:bpoptoken])[0] || Fbcomment.where(user_name: params[:userFanName], bpoptoken: params[:bpoptoken])[0]
       @fan = @fan.user_facebook_id
       render json: [@fan, params[:userFanName]]
   end

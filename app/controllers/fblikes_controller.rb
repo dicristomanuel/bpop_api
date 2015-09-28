@@ -19,15 +19,15 @@ class FblikesController < ApplicationController
       if params[:since]
         sinceDate = Chronic.parse(params[:since])
         if params[:limit]
-          @fblikes = Fblike.where("date > ? and bpopToken == ?", sinceDate, params[:id]).first(params[:limit].to_i)
+          @fblikes = Fblike.where("date > ? and bpoptoken = ?", sinceDate, params[:id]).first(params[:limit].to_i)
         else
-          @fblikes = Fblike.where("date > ? and bpopToken == ?", sinceDate, params[:id])
+          @fblikes = Fblike.where("date > ? and bpoptoken = ?", sinceDate, params[:id])
         end
       else
         if params[:limit]
-          @fblikes = Fblike.where(bpopToken: params[:id]).first(params[:limit])
+          @fblikes = Fblike.where(bpoptoken: params[:id]).first(params[:limit])
         else
-          @fblikes = Fblike.where(bpopToken: params[:id])
+          @fblikes = Fblike.where(bpoptoken: params[:id])
         end
       end
 
@@ -59,7 +59,7 @@ class FblikesController < ApplicationController
   private
 
   def fblikes_params
-    params.require(:fblike).permit(:user_facebook_id, :user_name, :gender, :bpopToken, :date)
+    params.require(:fblike).permit(:user_facebook_id, :user_name, :gender, :bpoptoken, :date)
   end
 
 

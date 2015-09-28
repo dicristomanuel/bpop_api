@@ -18,19 +18,19 @@ class FbcommentsController < ApplicationController
       if params[:since]
         sinceDate = Chronic.parse(params[:since])
         if params[:limit]
-          @fbcomments = Fbcomment.where("date > ? and bpopToken == ?", sinceDate, params[:id]).first(params[:limit].to_i)
+          @fbcomments = Fbcomment.where("date > ? and bpoptoken = ?", sinceDate, params[:id]).first(params[:limit].to_i)
         else
-          @fbcomments = Fbcomment.where("date > ? and bpopToken == ?", sinceDate, params[:id])
+          @fbcomments = Fbcomment.where("date > ? and bpoptoken = ?", sinceDate, params[:id])
         end
       else
         if params[:limit]
-          @fbcomments = Fbcomment.where(bpopToken: params[:id]).first(params[:limit])
+          @fbcomments = Fbcomment.where(bpoptoken: params[:id]).first(params[:limit])
         else
-          @fbcomments = Fbcomment.where(bpopToken: params[:id])
+          @fbcomments = Fbcomment.where(bpoptoken: params[:id])
         end
       end
       # render json: {count: @fbcomments.length, comments: @fbcomments} PREVIOUS VERSION
-      render :json => @fbcomments, :except=>  [:bpopToken, :fbpost_id, :user_facebook_id]
+      render :json => @fbcomments, :except=>  [:bpoptoken, :fbpost_id, :user_facebook_id]
     end
 
 
@@ -58,7 +58,7 @@ class FbcommentsController < ApplicationController
   private
 
   def fbcomments_params
-    params.require(:fbcomment).permit(:user_facebook_id, :user_name, :gender, :bpopToken, :date)
+    params.require(:fbcomment).permit(:user_facebook_id, :user_name, :gender, :bpoptoken, :date)
   end
 
 

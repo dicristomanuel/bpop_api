@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150924185121) do
+ActiveRecord::Schema.define(version: 20150928160801) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -23,9 +23,9 @@ ActiveRecord::Schema.define(version: 20150924185121) do
     t.datetime "updated_at",       null: false
     t.integer  "fbpost_id"
     t.string   "gender"
-    t.string   "bpopToken"
     t.string   "date"
     t.string   "user_facebook_id"
+    t.string   "bpoptoken"
   end
 
   add_index "fbcomments", ["fbpost_id"], name: "index_fbcomments_on_fbpost_id", using: :btree
@@ -37,8 +37,8 @@ ActiveRecord::Schema.define(version: 20150924185121) do
     t.string   "user_name"
     t.string   "gender"
     t.integer  "fbpost_id"
-    t.string   "bpopToken"
     t.string   "date"
+    t.string   "bpoptoken"
   end
 
   add_index "fblikes", ["fbpost_id"], name: "index_fblikes_on_fbpost_id", using: :btree
@@ -56,23 +56,23 @@ ActiveRecord::Schema.define(version: 20150924185121) do
     t.string   "likesGenderPercentage"
     t.string   "commentsGenderPercentage"
     t.text     "comments_data"
-    t.string   "bpopToken"
     t.string   "comments"
     t.string   "owner"
     t.string   "picture"
     t.string   "fb_post_id"
     t.integer  "user_id"
     t.string   "is_last"
+    t.string   "bpoptoken"
   end
 
   add_index "fbposts", ["user_id"], name: "index_fbposts_on_user_id", using: :btree
 
   create_table "users", force: :cascade do |t|
-    t.string   "bpopToken"
     t.datetime "created_at",                           null: false
     t.datetime "updated_at",                           null: false
     t.string   "tempPostsIdContainer"
     t.boolean  "is_parsing_complete",  default: false
+    t.string   "bpoptoken"
   end
 
   add_foreign_key "fbcomments", "fbposts"

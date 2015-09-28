@@ -14,25 +14,25 @@ class FbpostsController < ApplicationController
     if params[:since]
       sinceDate = Chronic.parse(params[:since])
       if params[:limit]
-        @fbposts = Fbpost.where("date > ? and bpopToken == ?", sinceDate, params[:id]).first(params[:limit].to_i)
+        @fbposts = Fbpost.where("date > ? and bpoptoken = ?", sinceDate, params[:id]).first(params[:limit].to_i)
       else
-        @fbposts = Fbpost.where("date > ? and bpopToken == ?", sinceDate, params[:id])
+        @fbposts = Fbpost.where("date > ? and bpoptoken = ?", sinceDate, params[:id])
       end
     else
       if params[:limit]
-        @fbposts = Fbpost.where(bpopToken: params[:id]).first(params[:limit])
+        @fbposts = Fbpost.where(bpoptoken: params[:id]).first(params[:limit])
       else
-        @fbposts = Fbpost.where(bpopToken: params[:id])
+        @fbposts = Fbpost.where(bpoptoken: params[:id])
       end
     end
-    render json: @fbposts, :except=>  [:fb_user_token, :bpopToken, :user_id, :fb_post_id]
+    render json: @fbposts, :except=>  [:fb_user_token, :bpoptoken, :user_id, :fb_post_id]
   end
 
 
   # PATCH/PUT /fbposts/1
   # PATCH/PUT /fbposts/1.json
   def create
-    @user = User.first_or_create(bpopToken: params['fbpost']['bpopToken'])
+    @user = User.first_or_create(bpoptoken: params['fbpost']['bpoptoken'])
     #check if post is already present in the database
     if @fbpost = Fbpost.find_by_fb_post_id(params[:fbpost][:fb_post_id])
         #update post's attribute
@@ -88,7 +88,7 @@ class FbpostsController < ApplicationController
 
   def get_overall_gender_percentage
     #get user's token to identify the user who's requesting the data
-    user_posts = Fbpost.where(bpopToken:params['bpopToken'])
+    user_posts = Fbpost.where(bpoptoken:params['bpoptoken'])
       #get percentages for likes and comments
       likes_percentage = get_overall_gender_percentage_likes(user_posts)
       comments_percentage = get_overall_gender_percentage_comments(user_posts)
@@ -118,7 +118,7 @@ class FbpostsController < ApplicationController
     end
 
     def set_user
-      @user = User.find_by(bpopToken: params[:fbpost][:bpopToken])
+      @user = User.find_by(bpoptoken: params[:fbpost][:bpoptoken])
     end
 
 
@@ -134,7 +134,7 @@ class FbpostsController < ApplicationController
           :comments_data,
           :url,
           :date,
-          :bpopToken,
+          :bpoptoken,
           :fb_user_token,
           :fb_post_id,
           :is_last
@@ -142,19 +142,19 @@ class FbpostsController < ApplicationController
     end
 
 
-    def fblikes_params(like, fb_user_token, bpopToken, date)
+    def fblikes_params(like, fb_user_token, bpoptoken, date)
       #find the gender of each of the users
       gender = get_gender(fb_user_token, like['id'])
       return {
         user_facebook_id: like['id'],
         user_name: like['name'],
         gender: gender,
-        bpopToken: bpopToken,
+        bpoptoken: bpoptoken,
         date: date
       }
     end
 
-    def fbcomments_params(comment, fb_user_token, bpopToken, date)
+    def fbcomments_params(comment, fb_user_token, bpoptoken, date)
       #find the gender of each of the users
       gender = get_gender(fb_user_token, comment['from']['id'])
       return {
@@ -162,7 +162,7 @@ class FbpostsController < ApplicationController
         user_name: comment['from']['name'],
         message: comment['message'],
         gender: gender,
-        bpopToken: bpopToken,
+        bpoptoken: bpoptoken,
         date: date
       }
     end
@@ -195,7 +195,7 @@ class FbpostsController < ApplicationController
       unless fbpost.likes_data == '0'
         likes = string_to_json(fbpost.likes_data) #private section#
         likes.each do |like|
-          fbpost.fblikes.create(fblikes_params(like, fbpost.fb_user_token, fbpost.bpopToken, fbpost.date)) #private section#
+          fbpost.fblikes.create(fblikes_params(like, fbpost.fb_user_token, fbpost.bpoptoken, fbpost.date)) #private section#
         end
         likesGenderPercentage = calculate_gender_percentage_likes(fbpost.fblikes)
         fbpost.update(
@@ -214,14 +214,14 @@ class FbpostsController < ApplicationController
 
           #if fbcomments array is empty and the comment doesn't come from the owner, create the new comment
           if fbpost.fbcomments.empty? && comment['from']['name'] != fbpost.owner
-            fbpost.fbcomments.create(fbcomments_params(comment, fbpost.fb_user_token, fbpost.bpopToken, fbpost.date)) #private section#
+            fbpost.fbcomments.create(fbcomments_params(comment, fbpost.fb_user_token, fbpost.bpoptoken, fbpost.date)) #private section#
           #if fbcomments array is not empty and the comment doesn't come from the owner
           elsif comment['from']['name'] != fbpost.owner
             #if not empty check if the user already made a comment
             present = fbpost.fbcomments.any? {|existingComment| existingComment['user_name'].include?(comment['from']['name'])}
             #create comment if user hasn't commented yet on the same post
             unless present
-                fbpost.fbcomments.create(fbcomments_params(comment, fbpost.fb_user_token, fbpost.bpopToken, fbpost.date)) #private section#
+                fbpost.fbcomments.create(fbcomments_params(comment, fbpost.fb_user_token, fbpost.bpoptoken, fbpost.date)) #private section#
             end
           end
         end
