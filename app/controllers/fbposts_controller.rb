@@ -1,4 +1,4 @@
-class FbpostsController < ApplicationController
+  class FbpostsController < ApplicationController
   before_action :set_user, only: [:update]
 
   # GET /fbposts
@@ -105,7 +105,6 @@ class FbpostsController < ApplicationController
         user.tempPostsIdContainer.clear
       else
         if params[:fbpost][:fb_post_id] == '590293087779465_620688661406574'
-          binding.pry
         end
         user.tempPostsIdContainer << params[:fbpost][:fb_post_id]
       end
