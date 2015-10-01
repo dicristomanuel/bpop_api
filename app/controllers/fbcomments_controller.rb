@@ -58,7 +58,7 @@ class FbcommentsController < ApplicationController
   private
 
   def fbcomments_params
-    params.require(:fbcomment).permit(:user_facebook_id, :user_name, :gender, :bpoptoken, :date)
+    params.require(:fbcomment).permit(:user_name, :message, :fbpost_id, :gender, :date, :user_facebook_id, :bpoptoken)
   end
 
 

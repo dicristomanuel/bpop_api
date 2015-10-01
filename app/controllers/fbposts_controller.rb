@@ -25,7 +25,7 @@
         @fbposts = Fbpost.where(bpoptoken: params[:id])
       end
     end
-    render json: @fbposts, :except=>  [:fb_user_token, :bpoptoken, :user_id, :fb_post_id]
+    render json: @fbposts, :except=> [:fb_user_token, :bpoptoken, :user_id, :fb_post_id]
   end
 
 
@@ -58,8 +58,7 @@
           #check if this is the last post sent to update
       else
         #if post is not present create new one
-        @user.fbposts.create(fbpost_params)
-        @fbpost = Fbpost.find_by_fb_post_id(params[:fbpost][:fb_post_id])
+        @fbpost = @user.fbposts.create(fbpost_params)
         unless @fbpost.likes_data == '0'
         #follow the logic to create post's likes
           handle_likes(@fbpost)
@@ -83,7 +82,7 @@
       #reset temp container to empty
       method = 'delete'
       posts_id_container(@user, method)
-      end
+    end
   end
 
   # DELETE /fbposts/1
@@ -202,6 +201,7 @@
       unless fbpost.likes_data == '0'
         likes = string_to_json(fbpost.likes_data) #private section#
         likes.each do |like|
+          #TODO NOT FROM OWNER
           fbpost.fblikes.create(fblikes_params(like, fbpost.fb_user_token, fbpost.bpoptoken, fbpost.date)) #private section#
         end
         likesGenderPercentage = calculate_gender_percentage_likes(fbpost.fblikes)
@@ -214,13 +214,12 @@
 
     def handle_comments(fbpost)
       #if fbpost has comments get the string and parse it to JSON, for each comment create new fbcomment
-      unless fbpost.comments_data == '0'
         comments = string_to_json(fbpost.comments_data) #private section#
         comments.each do |comment|
           #check if the user who made the comment already made a comment for the same post (grabbing unique comments only)
 
           #if fbcomments array is empty and the comment doesn't come from the owner, create the new comment
-          if fbpost.fbcomments.empty? && comment['from']['name'] != fbpost.owner
+          if fbpost.fbcomments.empty? and comment['from']['name'] != fbpost.owner
             fbpost.fbcomments.create(fbcomments_params(comment, fbpost.fb_user_token, fbpost.bpoptoken, fbpost.date)) #private section#
           #if fbcomments array is not empty and the comment doesn't come from the owner
           elsif comment['from']['name'] != fbpost.owner
@@ -236,7 +235,6 @@
         fbpost.update(
           commentsGenderPercentage: commentsGenderPercentage
          ) #private section#
-      end
     end
 
 
