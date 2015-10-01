@@ -39,10 +39,14 @@
         @fbpost.update_attributes(fbpost_params)
           #calculate likes / comments only if attributes have changed (this will slow down the process)
           if @fbpost.changed?
+            unless @fbpost.likes_data == '0'
             #follow the logic to create post's likes
-            handle_likes(@fbpost)
+              handle_likes(@fbpost)
+            end
+            unless @fbpost.comments_data == '0'
             #follow the logic to create post's comments
-            handle_comments(@fbpost)
+              handle_comments(@fbpost)
+            end
           end
             #store every post's Id into a temp container
             method = 'post'
@@ -56,10 +60,14 @@
         #if post is not present create new one
         @user.fbposts.create(fbpost_params)
         @fbpost = Fbpost.find_by_fb_post_id(params[:fbpost][:fb_post_id])
+        unless @fbpost.likes_data == '0'
         #follow the logic to create post's likes
-        handle_likes(@fbpost)
+          handle_likes(@fbpost)
+        end
+        unless @fbpost.comments_data == '0'
         #follow the logic to create post's comments
-        handle_comments(@fbpost)
+          handle_comments(@fbpost)
+        end
         method = 'post'
         posts_id_container(@user, method)
       end
